@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced Post System</title>
+
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #4CAF50;
+    color: white;
+    cursor: pointer;
+}
+
+.result {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.post-day {
+    background: #e6f7ec;
+    border-left: 5px solid green;
+}
+
+.no-post {
+    background: #fdecea;
+    border-left: 5px solid red;
+}
+
+select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+.history {
+    margin-top: 15px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 14px;
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>📲 Smart Post System</h2>
+
+<label>Select Posting Days:</label>
+<select id="day1">
+    <option value="2">Tuesday</option>
+    <option value="6">Saturday</option>
+    <option value="0">Sunday</option>
+    <option value="1">Monday</option>
+</select>
+
+<select id="day2">
+    <option value="6">Saturday</option>
+    <option value="2">Tuesday</option>
+    <option value="3">Wednesday</option>
+    <option value="5">Friday</option>
+</select>
+
+<button onclick="generatePost()">What should I post today?</button>
+
+<div id="result" class="result"></div>
+
+<h3>📜 History</h3>
+<div id="history" class="history"></div>
+<button id="clearHistory" onclick="clearHistory()" style="margin-top:8px;padding:6px;border-radius:6px;background:#ddd;border:none;cursor:pointer;">Clear History</button>
+
+</div>
+
+<script>
+
+// Content ideas
+const ideas = [
+    {type:"🎨 Drawing", platform:"Instagram", idea:"Sketch progress"},
+    {type:"📷 Photo", platform:"Instagram", idea:"Daily life capture"},
+    {type:"💻 Learning", platform:"LinkedIn", idea:"Python concept"},
+    {type:"🧠 Thought", platform:"Twitter", idea:"Short idea"}
+];
+
+// AI-style caption generator
+function generateCaption(type) {
+    const captions = {
+        "🎨 Drawing": [
+            "Still learning, still improving ✏️",
+            "Art journey continues 🎨",
+            "Practice makes progress"
+        ],
+        "📷 Photo": [
+            "Captured a small moment 📸",
+            "Simple things look beautiful",
+            "Shot on phone, edited with love"
+        ],
+        "💻 Learning": [
+            "Learning something new in Python 🐍",
+            "Step by step growth 💻",
+            "Consistency over perfection"
+        ],
+        "🧠 Thought": [
+            "Small steps matter 🚀",
+            "Stay consistent",
+            "Growth mindset always"
+        ]
+    };
+
+    let arr = captions[type];
+    if (!arr || arr.length === 0) {
+        const all = Object.values(captions).flat();
+        arr = all.length ? all : ["Share your thoughts!"];
+    }
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Save history
+function saveHistory(text) {
+    let history = JSON.parse(localStorage.getItem("postHistory")) || [];
+    history.unshift(text);
+    // keep most recent 50 entries
+    history = history.slice(0, 50);
+    localStorage.setItem("postHistory", JSON.stringify(history));
+    displayHistory();
+}
+
+// Display history
+function displayHistory() {
+    const historyDiv = document.getElementById("history");
+    let history = JSON.parse(localStorage.getItem("postHistory")) || [];
+
+    if (history.length === 0) {
+        historyDiv.innerHTML = '<p style="color:#666;margin:0;">No posts yet.</p>';
+    } else {
+        historyDiv.innerHTML = history.map(h => `<p style="margin:6px 0;">• ${h}</p>`).join("");
+    }
+}
+
+// Clear history
+function clearHistory() {
+    localStorage.removeItem("postHistory");
+    displayHistory();
+}
+
+// Main function
+function generatePost() {
+
+    const d1 = parseInt(document.getElementById("day1").value);
+    const d2 = parseInt(document.getElementById("day2").value);
+
+    const today = new Date().getDay();
+    const result = document.getElementById("result");
+
+    if (today !== d1 && today !== d2) {
+
+        result.className = "result no-post";
+        result.innerHTML = `
+            ❌ No post today<br>
+            👉 Task: Think 1 idea or click 1 photo
+        `;
+
+    } else {
+
+        const content = ideas[Math.floor(Math.random() * ideas.length)];
+        const caption = generateCaption(content.type);
+
+        result.className = "result post-day";
+        result.innerHTML = `
+            ✅ POST DAY<br><br>
+            <b>Platform:</b> ${content.platform}<br>
+            <b>Type:</b> ${content.type}<br>
+            <b>Idea:</b> ${content.idea}<br><br>
+
+            <b>Caption:</b> ${caption}<br><br>
+
+            👉 Steps:<br>
+            1. Create content<br>
+            2. Open app<br>
+            3. Post it<br>
+        `;
+
+        saveHistory(content.type + " - " + caption);
+    }
+}
+
+// Load history on start
+displayHistory();
+
+</script>
+
+</body>
+</html>
